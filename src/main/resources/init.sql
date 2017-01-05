@@ -11,12 +11,10 @@ CREATE TABLE movies (
 #UserID::Gender::Age::Occupation::Zip-code
 CREATE TABLE users (
     id INTEGER NOT NULL AUTO_INCREMENT,
-    name varchar(50) NOT NULL,
-    email varchar(100) default NULL,
     gender varchar(2) NOT NULL,
     age Integer NOT NULL,
     occupation varchar(2) default NULL,
-    zipCode varchar(6) default NULL,
+    zipCode varchar(12) default NULL,
 --    ...more user information...
     PRIMARY KEY (id)
 );
@@ -25,7 +23,7 @@ CREATE TABLE users (
 CREATE TABLE ratings (
     userID INTEGER NOT NULL,
     movieID INTEGER NOT NULL,
-    preference INTEGER NOT NULL DEFAULT 0,
+    rating INTEGER NOT NULL DEFAULT 0,
     timestamp INTEGER not null default 0,
     FOREIGN KEY (userID) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (movieID) REFERENCES movies(id) ON DELETE CASCADE

@@ -1,6 +1,6 @@
-package DB;//package DB;
+package DB;
 
-import baseUserCF.BaseUserCf;
+//import baseUserCF.BaseUserCf;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -64,12 +64,12 @@ public class ImportData {
 //            e.printStackTrace();
 //        }
         String ss = System.getProperty("user.dir");
-        ss = ss+"/src/main/resources";
+        ss = ss+"\\src\\main\\resources";
 //        writeUser2Database(ss+"/users.dat");
-//        writeMovies2Database(ss+"/movies.dat");
-//        writeRatings2Database(ss+"/ratings.dat");
-        System.out.println();
-        BaseUserCf.splitDate(new UtilDB().getAllData());
+//        writeMovies2Database(ss+"\\movies.dat");
+        writeRatings2Database(ss+"\\ratings.dat");
+        System.out.println(ss);
+//        BaseUserCf.splitDate(new UtilDB().getAllData());
     }
 
     public static void writeMovies2Database(String path){
@@ -104,10 +104,14 @@ public class ImportData {
                 conn.commit();
             }
         }catch (Exception e){
+            try{
+                conn.rollback();
+            }catch (Exception ee){
+                ee.printStackTrace();
+            }
             e.printStackTrace();
         }finally {
             try{
-                conn.rollback();
                 conn.close();
             }catch (Exception e){
                 e.printStackTrace();
@@ -138,13 +142,17 @@ public class ImportData {
                 conn.commit();
             }
         }catch (Exception e){
+            try{
+                conn.rollback();
+            }catch (Exception ee){
+                ee.printStackTrace();
+            }
             e.printStackTrace();
         }finally {
             try{
-                conn.rollback();
                 conn.close();
-            }catch (Exception e){
-                e.printStackTrace();
+            }catch (Exception ee){
+                ee.printStackTrace();
             }
         }
     }
@@ -157,9 +165,9 @@ public class ImportData {
             String line = bf.readLine();
             String sql = "insert into ratings (userID, movieID, rating,timestamp) values (?, ?, ?, ?)";
             PreparedStatement ps = conn.prepareStatement(sql);
-            final int batchSize = 70000;
+            final int batchSize = 200000;
             long count = 0 ;
-//            conn.setAutoCommit(false);
+            conn.setAutoCommit(false);
             while(line !=null){
                 String [] strs = line.split("::");
                 int userID = Integer.valueOf(strs[0]);
@@ -173,16 +181,21 @@ public class ImportData {
                 ps.addBatch();
                 if(++count % batchSize == 0){
                     ps.executeBatch();
-//                    conn.commit();
+                    conn.commit();
                 }
                 line = bf.readLine();
             }
             ps.executeBatch();
+            conn.commit();
         }catch (Exception e){
+            try{
+                conn.rollback();
+            }catch (Exception ee){
+                ee.printStackTrace();
+            }
             e.printStackTrace();
         }finally {
             try{
-                conn.rollback();
                 conn.close();
             }catch (Exception e){
                 e.printStackTrace();

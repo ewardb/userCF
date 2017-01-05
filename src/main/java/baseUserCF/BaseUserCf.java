@@ -1,14 +1,14 @@
 package baseUserCF;
 
+import DB.UtilDB;
 import Entity.Rating;
+import Kmeans.*;
+import Kmeans.PreDataKin;
+import Kmeans.UserModel;
+import Kmeans.UserModelXY;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
-import org.apache.mahout.cf.taste.common.Refreshable;
 import org.apache.mahout.cf.taste.common.TasteException;
-import org.apache.mahout.cf.taste.impl.common.FastByIDMap;
-import org.apache.mahout.cf.taste.impl.common.FastIDSet;
-import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
-//import org.apache.mahout.cf.taste.impl.model.jdbc.MySQLJDBCDataModel;
 import org.apache.mahout.cf.taste.impl.model.MySQLJDBCIDMigrator;
 
 import org.apache.mahout.cf.taste.impl.neighborhood.NearestNUserNeighborhood;
@@ -93,17 +93,17 @@ public class BaseUserCf {
         MysqlDataSource dataSource = new MysqlDataSource();
         dataSource.setServerName("localhost");
         dataSource.setUser("root");
-        dataSource.setPassword("ubuntu");
+        dataSource.setPassword("root");
         dataSource.setDatabaseName("userCf");
         JDBCDataModel dataModel = new MySQLJDBCDataModel(dataSource,"ratings","userID","movieId","rating","timestramp");
         DataModel model = dataModel;
         try{
             UserSimilarity similarity = new TanimotoCoefficientSimilarity(model);
-            UserNeighborhood neighborhood = new NearestNUserNeighborhood(3,similarity,model);
+            UserNeighborhood neighborhood = new NearestNUserNeighborhood(20,similarity,model);
             Recommender recommender = new GenericUserBasedRecommender(model,neighborhood,similarity);
             //gei yonghu 1 tuijian 3 tiaojilu
             Recommender recommender1 = new CachingRecommender(recommender);
-            List<RecommendedItem> recommenders = recommender1.recommend(1,5);
+            List<RecommendedItem> recommenders = recommender1.recommend(1,20);
             for(RecommendedItem recommendedItem:recommenders){
                 System.out.println(recommendedItem);
             }
@@ -112,10 +112,24 @@ public class BaseUserCf {
         }
     }
     public static void main(String args[]){
-
+//
         long t1  = System.currentTimeMillis();
-        ss();
+        Kmeans kmeans = new Kmeans();
+        UtilDB utilDB = new UtilDB();
+        List<UserModel> list =  utilDB.getUserMovidType(); //97777
+        List<UserModelXY> userModelXYList =  PreDataKin.createXandY(list);
         System.out.println(System.currentTimeMillis() - t1);
+        int k = 10;
+        List<Cluster> kCluster = kmeans.kmeansFunc(userModelXYList,k);
+        System.out.println(System.currentTimeMillis() - t1);
+        for(int i = 0 ; i< k ; i++){
+            Cluster c = kCluster.get(i);
+            System.out.print("用户(");
+            for(UserModelXY p : c.getListPoint()){
+                System.out.print(p.getId());
+                System.out.print(" ");
+            }
+            System.out.println(") 属于第"+ c.getClusterid()+"类，大小为"+c.getListPoint().size());
+        }
     }
-
 }
